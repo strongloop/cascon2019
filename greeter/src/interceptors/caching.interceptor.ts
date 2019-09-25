@@ -13,10 +13,10 @@ import {
   Provider,
   ValueOrPromise,
 } from '@loopback/context';
-import {RestBindings} from '@loopback/rest';
+import { RestBindings } from '@loopback/rest';
 import * as debugFactory from 'debug';
-import {CachingService} from '../caching.service';
-import {CACHING_SERVICE} from '../keys';
+import { CachingService } from '../caching.service';
+import { CACHING_SERVICE } from '../keys';
 
 const debug = debugFactory('greeter-extension');
 
@@ -24,7 +24,7 @@ const debug = debugFactory('greeter-extension');
 export class CachingInterceptor implements Provider<Interceptor> {
   constructor(
     @inject(CACHING_SERVICE) private cachingService: CachingService,
-  ) {}
+  ) { }
 
   value() {
     return async (
@@ -40,7 +40,7 @@ export class CachingInterceptor implements Provider<Interceptor> {
         return next();
       }
       const key = httpReq.path;
-      const lang = httpReq.acceptsLanguages(['en', 'zh']) || 'en';
+      const lang = httpReq.headers['accept-language'] || 'en';
       const cachingKey = `${lang}:${key}`;
       const cachedResult = await this.cachingService.get(cachingKey);
       if (cachedResult) {
