@@ -39,9 +39,12 @@ export class GreetingController {
       },
     },
   })
-  async greet(@param.path.string('name') name: string): Promise<Message> {
-    const language: string =
-      this.request.acceptsLanguages(['en', 'zh', 'fr']) || 'en';
+  async greet(
+    @param.path.string('name') name: string,
+    @param.header.string('language') lang: string,
+  ): Promise<Message> {
+    const language: string = ['en', 'zh', 'fr'].includes(lang) ? lang : 'en';
+
     const greeting = await this.greetingService.greet(language, name);
     return {
       timestamp: new Date(),
