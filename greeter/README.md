@@ -19,6 +19,7 @@ In this workshop, you will be guided to scaffold a greeter app using the LoopBac
 4. The greeting app and certain greeters have configuration options (configurability) _FIXME: we don't have this part, right?_
 
 ![Greeting application diagram](https://raw.githubusercontent.com/strongloop/loopback-next/master/examples/greeting-app/greeting-app.png)
+_TODO: Might need to update the diagram_
 
 This miniature project reflects many key aspects of a scalable and extensible applications, and relevant techniques will be covered in the workshop, like Inversion of Control, Dependency Injection, Decorators and Component.
 
@@ -40,13 +41,45 @@ To complete the steps in this tutorial, you need to install Node.js and the Loop
     ```sh
     npm i -g @loopback/cli
     ```
+3. Set up development environment
+
+    If you don't have a development environment, we'd recommend using [Visual Studio Code](https://code.visualstudio.com/). The LoopBack application generator CLI allows you to generate the VSCode setting files. 
 
 ## Part 1: Create a Greeting Application
 
 As the first step, we are going to create a greeting application that utilize the pre-existing LoopBack extension `greeter-extension`.
 
-### Step 1: Create a Message Type File
-We're going to create a `Message` type. This will be used as the response type that the GreetingService produces. In the `src` folder, create a file called `types.ts` with the following content:
+### Step 1: Scaffold a LoopBack application
+
+1. Scaffold a LoopBack application by running the `lb4` command. 
+
+    ```sh
+    $ lb4
+    ? Project name: greeter
+    ? Project description: a loopback 4 application with a greeter
+    ? Project root directory: greeter
+    ? Application class name: GreeterApplication
+    ? Select features to enable in the project (Press <space> to select, <a> to togg
+    le all, <i> to invert selection)Enable eslint, Enable prettier, Enable mocha, En
+    able loopbackBuild, Enable vscode, Enable docker, Enable repositories, Enable se
+    rvices
+    ...
+    Application greeter was created in greeter.
+
+    Next steps:
+
+    $ cd greeter
+    $ npm start
+    ```
+
+2. We'll be using the extension `@loopback/example-greeter-extension` in the application. Install the extension: 
+
+    ```sh
+    npm i --save @loopback/example-greeter-extension
+    ```
+
+### Step 2: Create a Message Type File
+We're going to create a `Message` type. This will be used as the response type that the GreetingService produces. In the `src` folder, create a file called `types.ts` with the following content. You can also find the code in [here](https://github.com/strongloop/cascon2019/blob/master/greeter/src/types.ts).
 
 ```ts
 /**
@@ -59,7 +92,7 @@ export interface Message {
 }
 ```
 
-### Step 2: Create a Greeting Controller
+### Step 3: Create a Greeting Controller
 
 1. Create an endpoint `/greet/{name}` that takes a name and returns a greeting message in the language that is specified in the HTTP request. Run the Controller generator: 
 
@@ -77,10 +110,13 @@ export interface Message {
 
 2. In the generated GreetingController in `src/controllers/greeting.controller.ts`, modify the constructor:
     ```ts
-    constructor(
-        @inject(GREETING_SERVICE) private greetingService: GreetingService,
-        @inject(RestBindings.Http.REQUEST) private request: Request,
-    ) {}
+    class GreetingController {
+        constructor(
+            @inject(GREETING_SERVICE) private greetingService: GreetingService,
+            @inject(RestBindings.Http.REQUEST) private request: Request,
+        ) {} 
+        // define @post, @get here..
+    }
     ```
 
 3. Add the endpoint `/greet/{name}` which calls the [GreetingService](https://github.com/strongloop/loopback-next/blob/master/examples/greeter-extension/src/greeting-service.ts) in the greeter-extension that we've created already. It accepts language English or Chinese. If other language is specified, it will fall back to English.
@@ -109,8 +145,7 @@ export interface Message {
         @param.path.string('name') name: string,
         @param.header.string('language') lan: string,
     ): Promise<Message> {
-        const language: string =
-        this.request.acceptsLanguages(['en', 'zh']) || 'en';
+        const language: string = this.request.acceptsLanguages(['en', 'zh']) || 'en';
         const greeting = await this.greetingService.greet(language, name);
         return {
         timestamp: new Date(),
@@ -131,12 +166,9 @@ export interface Message {
     } from '@loopback/example-greeter-extension';
     ```
 
-5. Make sure we install the extension: 
-    ```sh
-    npm i --save @loopback/example-greeter-extension
-    ```
 
-### Step 3: Bind the GreetingService to the application
+
+### Step 4: Bind the GreetingService to the application
 
 Under `src/application.ts`, add the following line inside the constructor:
 ```ts
@@ -148,7 +180,13 @@ Under `src/application.ts`, add the following line inside the constructor:
     this.projectRoot = __dirname;
 ```
 
-### Step 4: Try it Out!
+And the following import statement:
+```ts
+import {GreetingComponent} from '@loopback/example-greeter-extension';
+```
+
+
+### Step 5: Try it Out!
 Let’s try out our application! First, you’ll want to start the app.
 
 ```sh
@@ -197,17 +235,19 @@ Let's try it one more time with language `fr`.  Since there is no greeter for Fr
 ```
 
 
-
 ## Part 2: Add a French Greeter  
-_TODO: what it actually does? Add on the extension?_
-
-Now, we're going to create a French greeter. 
+We are now going to create a new French greeter class which extends a certain interface defined by the extension point. Then it has to register itself against that extension point.
 
 
 ### Step 1: Creater French Greeter
 1. In `src` folder, create a file called `greeter-fr.ts`. 
-2. Add the `FrenchGreeter` class. 
+2. Add the required imports.
+    ```ts
+    import {bind, config} from '@loopback/context';
+    import {asGreeter, Greeter} from '@loopback/example-greeter-extension';
+    ```
 
+3. Add the `FrenchGreeter` class. 
     ```ts
     /**
      * A greeter implementation for French.
@@ -244,11 +284,7 @@ Now, we're going to create a French greeter.
     }
     ```
 
-3. Add the required imports.
-    ```ts
-    import {bind, config} from '@loopback/context';
-    import {asGreeter, Greeter} from '@loopback/example-greeter-extension';
-    ```
+
 
 ### Step 2: Bind the FrenchGreeter in the Application
 
@@ -446,13 +482,13 @@ _TODO: how to test caching is working?_
 
 Congratulations! You have completed the tutorial. 
 
-You have successfully built a LoopBack application using an existing extension `greeter-extension`, and then you have added functionality on top of the existing extension, i.e. add a French greeter.  Lastly, you have enabled caching as part of the application lifecycle.
+You have successfully built a LoopBack application using an existing extension `greeter-extension`, and then you have added functionality on top of the existing extension, i.e. add a French greeter.  Lastly, you have enabled caching as part of the application lifecycle using a lifecycle observer.
 
 
 ## Authors 
 - [Diana Lau](https://github.com/dhmlau)
 - [Janny Hou](https://github.com/jannyhou)
-- [Dominique Edmond](https://github.com/emonddr)
+- [Dominique Emond](https://github.com/emonddr)
 - [Agnes Lin](https://github.com/agnes512)
 
 
