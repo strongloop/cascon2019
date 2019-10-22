@@ -1,6 +1,6 @@
 import { param, get, Request, RestBindings } from "@loopback/rest";
 import { Message } from "../types";
-import {inject} from '@loopback/context';
+import { inject } from '@loopback/context';
 // Import from the beginning but bind a simple function as service
 import {
   GreetingService,
@@ -18,7 +18,7 @@ export class GreetingController {
   constructor(
     @inject(GREETING_SERVICE) private greetingService: GreetingService,
     @inject(RestBindings.Http.REQUEST) private request: Request,
-  ) {}
+  ) { }
 
   @get('/greet/{name}', {
     responses: {
@@ -39,10 +39,14 @@ export class GreetingController {
       },
     },
   })
-  async greet(@param.path.string('name') name: string): Promise<Message> {
-    const language: string =
-      this.request.acceptsLanguages(['en', 'zh', 'fr']) || 'en';
+  async greet(
+    @param.path.string('name') name: string,
+    @param.header.string('Accept-Language') lan: string,
+  ): Promise<Message> {
+
+    const language: string = lan;
     const greeting = await this.greetingService.greet(language, name);
+
     return {
       timestamp: new Date(),
       language,

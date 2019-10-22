@@ -1,5 +1,9 @@
 import {BootMixin} from '@loopback/boot';
-import {ApplicationConfig, BindingScope, createBindingFromClass} from '@loopback/core';
+import {
+  ApplicationConfig,
+  BindingScope,
+  createBindingFromClass,
+} from '@loopback/core';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
@@ -9,10 +13,10 @@ import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import * as path from 'path';
 import {MySequence} from './sequence';
-import {GreetingComponent } from '@loopback/example-greeter-extension';
-import { FrenchGreeter } from './greeter-fr';
-import { CachingService } from './caching.service';
-import { CachingInterceptor } from './interceptors';
+import {GreetingComponent} from '@loopback/example-greeter-extension';
+import {FrenchGreeter} from './greeter-fr';
+import {CachingService} from './caching.service';
+import {CachingInterceptor} from './interceptors';
 import {CACHING_SERVICE} from './keys';
 
 export class GreeterApplication extends BootMixin(
@@ -31,6 +35,7 @@ export class GreeterApplication extends BootMixin(
     this.bind(RestExplorerBindings.CONFIG).to({
       path: '/explorer',
     });
+
     this.add(createBindingFromClass(CachingService, {key: CACHING_SERVICE}));
     this.add(createBindingFromClass(CachingInterceptor));
     this.component(RestExplorerComponent);
