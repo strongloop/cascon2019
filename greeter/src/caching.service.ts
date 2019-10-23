@@ -89,7 +89,7 @@ export class CachingService {
   async getTTL() {
     const options = await this.optionsView.singleValue();
     debug('Caching options: %j', options);
-    return (options && options.ttl) || 5000;
+    return (options && options.ttl) || 10000;
   }
 
   /**
