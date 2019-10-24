@@ -470,70 +470,7 @@ Let's create the binding key for the caching service so that you can inject it i
         );
         ```
 
-### Step 2: Create the observer
-
-We'd like to start the caching service during the start of the application. Likewise, we'd also want to stop the caching service when the application stops. To do this, we are going to use a [lifecycle observer](https://loopback.io/doc/en/lb4/Life-cycle.html).
-
-1. Run the observer generator `lb4 observer` command.
-
-   ```sh
-   $ lb4 observer
-   ? Observer name: Cache
-   ? Observer group:
-   create src/observers/cache.observer.ts
-   update src/observers/index.ts
-
-   Observer Cache was created in src/observers/
-   ```
-
-2. Go to `src/observers/cache.observer.ts`, modify the constructor to get the caching service:
-
-   ```ts
-   constructor(
-       @inject(CACHING_SERVICE) private cachingService: CachingService,
-   ) {}
-   ```
-
-   And the following import statements:
-
-   ```ts
-   import {inject} from '@loopback/context';
-   import {CachingService} from '../caching.service';
-   import {CACHING_SERVICE} from '../keys';
-   import {
-     /* inject, Application, CoreBindings, */
-     lifeCycleObserver, // The decorator
-     LifeCycleObserver, // The interface
-   } from '@loopback/core';
-   ```
-
-   Give the observer a group name
-
-   ```ts
-   @lifeCycleObserver('caching')
-   ```
-
-3. For the `start()` and `stop()` function, we want to start and stop the caching service.
-
-   ```ts
-   /**
-    * This method will be invoked when the application starts
-    */
-   async start(): Promise<void> {
-       // Add your logic for start
-       await this.cachingService.start();
-   }
-
-   /**
-    * This method will be invoked when the application stops
-    */
-   async stop(): Promise<void> {
-       // Add your logic for stop
-       await this.cachingService.stop();
-   }
-   ```
-
-### Step 3: Create global interceptor for caching
+### Step 2: Create global interceptor for caching
 
 1. Run the interceptor generator `lb4 interceptor` command.
 
@@ -609,11 +546,74 @@ We'd like to start the caching service during the start of the application. Like
    return result;
    ```
 
+### Step 3: Create the observer
+
+We'd like to start the caching service during the start of the application. Likewise, we'd also want to stop the caching service when the application stops. To do this, we are going to use a [lifecycle observer](https://loopback.io/doc/en/lb4/Life-cycle.html).
+
+1. Run the observer generator `lb4 observer` command.
+
+   ```sh
+   $ lb4 observer
+   ? Observer name: Cache
+   ? Observer group:
+   create src/observers/cache.observer.ts
+   update src/observers/index.ts
+
+   Observer Cache was created in src/observers/
+   ```
+
+2. Go to `src/observers/cache.observer.ts`, modify the constructor to get the caching service:
+
+   ```ts
+   constructor(
+       @inject(CACHING_SERVICE) private cachingService: CachingService,
+   ) {}
+   ```
+
+   And the following import statements:
+
+   ```ts
+   import {inject} from '@loopback/context';
+   import {CachingService} from '../caching.service';
+   import {CACHING_SERVICE} from '../keys';
+   import {
+     /* inject, Application, CoreBindings, */
+     lifeCycleObserver, // The decorator
+     LifeCycleObserver, // The interface
+   } from '@loopback/core';
+   ```
+
+   Give the observer a group name
+
+   ```ts
+   @lifeCycleObserver('caching')
+   ```
+
+3. For the `start()` and `stop()` function, we want to start and stop the caching service.
+
+   ```ts
+   /**
+    * This method will be invoked when the application starts
+    */
+   async start(): Promise<void> {
+       // Add your logic for start
+       await this.cachingService.start();
+   }
+
+   /**
+    * This method will be invoked when the application stops
+    */
+   async stop(): Promise<void> {
+       // Add your logic for stop
+       await this.cachingService.stop();
+   }
+   ```
+
 4. Then bind Observer and Interceptor to you app
    in `src/application.ts` file, add these lines:
 
    ```ts
-   // add these mports
+   // add these imports
    import {CachingService} from './caching.service';
    import {CACHING_SERVICE} from './keys';
    import {CachingInterceptor} from './interceptors';
