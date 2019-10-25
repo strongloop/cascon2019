@@ -1,5 +1,5 @@
 import {BootMixin} from '@loopback/boot';
-import {ApplicationConfig} from '@loopback/core';
+import {ApplicationConfig, createBindingFromClass} from '@loopback/core'; //Change this line
 import {
   RestExplorerBindings,
   RestExplorerComponent,
@@ -10,6 +10,8 @@ import {ServiceMixin} from '@loopback/service-proxy';
 import * as path from 'path';
 import {MySequence} from './sequence';
 import {GreetingComponent} from '@loopback/example-greeter-extension';
+
+import {FrenchGreeter} from './greeter-fr'; //Add this line
 
 export class GreetingApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
@@ -31,6 +33,11 @@ export class GreetingApplication extends BootMixin(
     // add this line. It binds the greeting component (and all its artifacts) to the app
     this.component(GreetingComponent);
 
+    // this line plugs in the extension
+    this.add(createBindingFromClass(FrenchGreeter));
+
+    // Add the following line
+    this.configure('greeters.ChineseGreeter').to({nameFirst: false});
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here
