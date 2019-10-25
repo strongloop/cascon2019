@@ -566,7 +566,7 @@ Again, we are using `bind` and `injection` to bind our app with an Interceptor a
 
 **Stop the app with Ctrl+C**
 
-1. Copy the contents of [caching.service.ts](https://github.com/strongloop/cascon2019/blob/dremond_update/greeter/src/caching.service.ts) to a new file in your workspace named `src/services/caching.service.ts`.
+1. Copy the contents of [caching.service.ts](https://github.com/strongloop/cascon2019/blob/workshop-part4-completed/greeting-app/src/services/caching.service.ts) to a new file in your workspace named `src/services/caching.service.ts`.
 
 2. Create the binding key for caching service.
 
@@ -576,7 +576,7 @@ Again, we are using `bind` and `injection` to bind our app with an Interceptor a
 
     ```ts
     import {BindingKey} from '@loopback/context';
-    import {CachingService} from './caching.service';
+    import {CachingService} from './services/caching.service';
 
     /**
      * Strongly-typed binding key for CachingService
@@ -619,7 +619,7 @@ Again, we are using `bind` and `injection` to bind our app with an Interceptor a
         inject,
         ValueOrPromise,
       } from '@loopback/context';
-      import {CachingService} from '../caching.service';
+      import {CachingService} from '../services/caching.service';
       import {CACHING_SERVICE} from '../keys';
       import {RestBindings} from '@loopback/rest';
       ```
@@ -671,7 +671,7 @@ Again, we are using `bind` and `injection` to bind our app with an Interceptor a
 
    ```ts
    // add these mports
-   import {CachingService} from './caching.service';
+   import {CachingService} from './services/caching.service';
    import {CACHING_SERVICE} from './keys';
    import {CachingInterceptor} from './interceptors';
    ```
@@ -714,7 +714,7 @@ We'd like to start the caching service during the start of the application. Like
 
       ```ts
       import {inject} from '@loopback/context';
-      import {CachingService} from '../caching.service';
+      import {CachingService} from '../services/caching.service';
       import {CACHING_SERVICE} from '../keys';
       import {
         /* inject, Application, CoreBindings, */
