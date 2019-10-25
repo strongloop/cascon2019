@@ -1,14 +1,18 @@
-import {SimpleGreetingService} from '../services/simple.greeting.service';
-import {param, get} from '@loopback/rest';
+import {param, get, Request, RestBindings} from '@loopback/rest';
 import {Message} from '../types';
+import {inject} from '@loopback/context';
+import {
+  GreetingService,
+  GREETING_SERVICE,
+} from '@loopback/example-greeter-extension';
 
 export class GreetingController {
-  private greetingService: SimpleGreetingService;
+  
 
-  constructor() {
-    this.greetingService = new SimpleGreetingService();
-  }
-
+  constructor(
+    @inject(GREETING_SERVICE) private greetingService: GreetingService,
+  ) {}
+  
   @get('/greet/{name}', {
     responses: {
       '200': {
