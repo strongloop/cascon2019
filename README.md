@@ -38,7 +38,7 @@ Here is a brief outline of the workshop:
 
 5. Enable caching by sweeping for REST requests (interception/observation)
 
-   - how to bind more services to you app and make it work as a whole.
+   - how to extend your application by applying interceptors and observers.
 
 ![Greeting application diagram](images/greeting-app-overview.png)
 
@@ -67,8 +67,29 @@ To complete the steps in this tutorial, you need to install Node.js and the Loop
 
    If you don't have a development environment, we'd recommend using [Visual Studio Code](https://code.visualstudio.com/). The LoopBack application generator CLI allows you to generate the VSCode setting files.
 
+## How to use this repo and its branches
+
+This repository contains different branches for various stages of this workshop.
+The master branch only contains the instructions (README.md) for this workshop.
+The `workshop-part1-completed` branch contains the instructions (README.md) for this workshop as well as all the artifacts completed in Part 1 on the workshop. The same is true for the remaining `workshop-part{2,3,4}-completed` branches.
+In the workshop, you will `git clone` this repository and start adding code with the master branch.
+Every time you finish a section, you can run 
+```sh
+git checkout <the_next_step>
+``` 
+to begin the next section.
+For example, when following the first section, you will be on branch `master`. After the app is created, you can run 
+```sh
+git stash
+git checkout workshop-part1-complete
+```
+which contains our default implementation for section 1 to begin section 2.
 
 ## Part 1: Create a Greeting Application
+
+```sh
+git checkout master
+```
 
 We are going to create a greeting application that contains a greeting service. 
 We will place our application and its various artifacts in the `greeting-app` module.
@@ -80,8 +101,6 @@ Steps 1-3 show how LB4 can quickly create a greeting endpoint.
 ### Step 1: Scaffold a LoopBack application
 
 One of LoopBack 4's significant features is to enable you to quickly create application and REST APIs. 
-
-
 
 1. Scaffold a LoopBack application by running the `lb4` command.
 
@@ -258,6 +277,12 @@ The design approach isn't the best, though.
 
 ## Part 2: Better Design
 
+```sh
+git add .
+git stash
+git checkout workshop-part1-completed
+```
+
 LB4 allows you to extend your application by importing other modules and binding/injecting various artifacts to meet your business requirements.
 
 We are going to take this monolithic application and exercise a good separation of concerns by dividing responsibilities across a few artifacts. And since our main focus today is extensibility and scalability, we will utilize some pre-existing artifacts (component, interface, service, extensionPoint, extensions) from the `greeter-extension` module, and we keep our application and its various artifacts in the `greeting-app` module. Keeping common services and components in separate modules provides a good separation of concerns and using bindings/injections makes your app loosely coupled and scalable.
@@ -276,6 +301,7 @@ Install the module:
  
    ```sh
    cd greeter-app
+   npm i
    npm i --save @loopback/example-greeter-extension
    ```
 
@@ -300,7 +326,7 @@ Let's modify `greeting-app/src/controllers/greeting.controller.ts`
 3. **Remove** the line 
 
     ```ts
-    protected greetingService: SimpleGreetingService;
+    private greetingService: SimpleGreetingService;
     ```
 
 4. Modify the constructor:
@@ -421,6 +447,14 @@ Let's try it one more time with the language set to `fr`. The greeting service f
 ```
 
 ## Part 3: Add a French Greeter
+
+```sh
+git add .
+git stash
+git checkout workshop-part2-completed
+cd greeter-app
+npm i
+```
 
  LB4 allows you to implement features that utilize the [extension points/extensions](https://loopback.io/doc/en/lb4/Extension-point-and-extensions.html) design pattern, which organizes artifacts with loose coupling and promotes extensibility. We have shown in previous steps that our app is organized into two modules. The `greeting-extension` module defines a `GreetingComponent`. `GreetingComponent` contains `GreetingService` which declares an extension point named `greeters`. There are 2 greeters (`EnglishGreeter` and `ChineseGreeter` which implement the `Greeter` interface, and which register themselves as extensions to this extension point `greeters`. `GreetingService` looks for extensions that can handle a particular language. If it cannot find the greeter for a particular language, it defaults to English. 
 
@@ -551,9 +585,21 @@ Related documentation:
 
 ## Part 4: Enable Caching
 
-To reduce the cost of calculation, we'd like to use a caching service for the greeting application. We will show how to bind a caching service, interceptor and observer to the app.
+```sh
+git add .
+git stash
+git checkout workshop-part3-completed
+cd greeter-app
+npm i
+```
 
-The caching service will cache the greeting messages for a certain amount of time. And cached messages will be swept out when they are expired.
+To reduce the cost of calculation, we'd like to add a caching system for the greeting application. We will show how to bind a caching service, interceptor and observer to the app.
+
+Here are the requirements:
+
+- Cache the result using the request's uri and language as the key.
+- The cached message has an expiration time.
+- Expired messages will be swept out periodically.
 
 ![Greeting application diagram](images/greeting-app-overview.png)
 
@@ -648,10 +694,10 @@ Again, we are using `bind` and `injection` to bind our app with an Interceptor a
     if (!httpReq || EXCLUDED_PATHS.includes(httpReq.path)) {
       return next();
     }
-    const key = httpReq.path;
+    const path = httpReq.path;
 
     const lang = httpReq.headers['accept-language'] || 'en';
-    const cachingKey = `${lang}:${key}`;
+    const cachingKey = `${lang}:${path}`;
     const cachedResult = await this.cachingService.get(cachingKey);
     if (cachedResult) {
       console.error('Cache found for %s %j', cachingKey, cachedResult);
@@ -670,7 +716,7 @@ Again, we are using `bind` and `injection` to bind our app with an Interceptor a
    Add these imports: 
 
    ```ts
-   // add these mports
+   // add these imports
    import {CachingService} from './services/caching.service';
    import {CACHING_SERVICE} from './keys';
    import {CachingInterceptor} from './interceptors';
@@ -764,7 +810,7 @@ The expire time for each result is set to 10 seconds (10000 milliseconds by defa
 
 To test the cached result and its expiration, you can
 
-Try GET/ greet/{name} with a name 'loopback' and language 'en'
+Try `GET/ greet/{name}` with a name 'loopback' and language 'en'
 You will see a result object with a timestamp field like
 
 ```
@@ -823,7 +869,11 @@ The interceptor, service and observer could be contributed by from different mod
 
 ## Conclusion
 
-Congratulations! You have completed the tutorial.
+Congratulations! You have completed the tutorial. You can checkout branch `workshop-part4-complete` to view the finished app.
+
+```sh
+git checkout workshop-part4-completed
+```
 
 First, you built a LoopBack application using a component GreetingComponent located in a different module named greeter-extension. Then you extended the functionality to the GreetingComponent by adding FrenchGreeter as an extension. Then you created a caching service that is started and stopped by a lifecycle observer. And lastly, you retrieved/stored request responses from/in the cache by using an interceptor.
 
