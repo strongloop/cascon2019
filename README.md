@@ -38,7 +38,7 @@ Here is a brief outline of the workshop:
 
 5. Enable caching by sweeping for REST requests (interception/observation)
 
-   - how to bind more services to you app and make it work as a whole.
+   - how to extend your application by applying interceptors and observers.
 
 ![Greeting application diagram](images/greeting-app-overview.png)
 
@@ -67,8 +67,29 @@ To complete the steps in this tutorial, you need to install Node.js and the Loop
 
    If you don't have a development environment, we'd recommend using [Visual Studio Code](https://code.visualstudio.com/). The LoopBack application generator CLI allows you to generate the VSCode setting files.
 
+## How to use this repo and its branches
+
+This repository contains different branches for various stages of this workshop.
+The master branch only contains the instructions (README.md) for this workshop.
+The `workshop-part1-completed` branch contains the instructions (README.md) for this workshop as well as all the artifacts completed in Part 1 on the workshop. The same is true for the remaining `workshop-part{2,3,4}-completed` branches.
+In the workshop, you will `git clone` this repository and start adding code with the master branch.
+Every time you finish a section, you can run 
+```sh
+git checkout <the_next_step>
+``` 
+to begin the next section.
+For example, when following the first section, you will be on branch `master`. After the app is created, you can run 
+```sh
+git stash
+git checkout workshop-part1-complete
+```
+which contains our default implementation for section 1 to begin section 2.
 
 ## Part 1: Create a Greeting Application
+
+```sh
+git checkout master
+```
 
 We are going to create a greeting application that contains a greeting service. 
 We will place our application and its various artifacts in the `greeting-app` module.
@@ -79,9 +100,7 @@ Steps 1-3 show how LB4 can quickly create a greeting endpoint.
 
 ### Step 1: Scaffold a LoopBack application
 
-One of LoopBack 4's significant features is to enable you to quickly create application and REST APIs. 
-
-
+One of LoopBack 4's significant features is to enable you to quickly create application and REST APIs.
 
 1. Scaffold a LoopBack application by running the `lb4` command.
 
@@ -97,13 +116,14 @@ One of LoopBack 4's significant features is to enable you to quickly create appl
    rvices
    ...
    Application greeting-app was created in greeting-app.
+   ```
 
 Next steps:
 
 ```
 $ cd greeting-app
 $ npm start
-   ```
+```
 
 2. Go into the `greeting-app` directory and open Visual Studio Code
    ```sh
@@ -113,7 +133,7 @@ $ npm start
 
 ### Step 2: Create a Message Type File
 
-We're going to create a `Message` type. This will be used as the response type that the GreetingService produces. In the `src` folder, create a file called `types.ts` with the following content. 
+We're going to create a `Message` type. This will be used as the response type that the GreetingService produces. In the `src` folder, create a file called `types.ts` with the following content.
 
 ```ts
 /**
@@ -136,11 +156,10 @@ In the `src/services` folder, create a `file` called `simple.greeting.service.ts
 
 ```ts
 export class SimpleGreetingService {
-    
-    async greet(language: string, name: string): Promise<string> {     
-      return `Greeting '${name}' in language '${language}'`;
-     }
+  async greet(language: string, name: string): Promise<string> {
+    return `Greeting '${name}' in language '${language}'`;
   }
+}
 ```
 
 We're not going to fully implement this greeting service at this moment.
@@ -166,9 +185,9 @@ A Controller is a class that implements operations defined by an application’s
 2. In the generated GreetingController in `src/controllers/greeting.controller.ts`, add the necessary imports
 
    ```ts
-    import {SimpleGreetingService} from '../services/simple.greeting.service';
-    import {param, get} from '@loopback/rest';
-    import {Message} from '../types';
+   import { SimpleGreetingService } from '../services/simple.greeting.service';
+   import { param, get } from '@loopback/rest';
+   import { Message } from '../types';
    ```
 
 3. Modify the constructor:
@@ -258,6 +277,11 @@ The design approach isn't the best, though.
 
 ## Part 2: Better Design
 
+```sh
+git stash
+git checkout workshop-part1-completed
+```
+
 LB4 allows you to extend your application by importing other modules and binding/injecting various artifacts to meet your business requirements.
 
 We are going to take this monolithic application and exercise a good separation of concerns by dividing responsibilities across a few artifacts. And since our main focus today is extensibility and scalability, we will utilize some pre-existing artifacts (component, interface, service, extensionPoint, extensions) from the `greeter-extension` module, and we keep our application and its various artifacts in the `greeting-app` module. Keeping common services and components in separate modules provides a good separation of concerns and using bindings/injections makes your app loosely coupled and scalable.
@@ -266,7 +290,7 @@ We are going to take this monolithic application and exercise a good separation 
 
 ### Step 1: Install greeter-extension module
 
-We'll be using several artifacts from the` @loopback/example-greeter-extension` module in our application.
+We'll be using several artifacts from the`@loopback/example-greeter-extension` module in our application.
 
 **Stop the app with Ctrl+C**
 
@@ -276,6 +300,7 @@ Install the module:
  
    ```sh
    cd greeter-app
+   npm i
    npm i --save @loopback/example-greeter-extension
    ```
 
@@ -288,46 +313,45 @@ Let's modify `greeting-app/src/controllers/greeting.controller.ts`
 2. Add the new imports
 
    ```ts
-   import {param, get, Request, RestBindings} from '@loopback/rest';
-   import {Message} from '../types';
-   import {inject} from '@loopback/context';
+   import { param, get, Request, RestBindings } from '@loopback/rest';
+   import { Message } from '../types';
+   import { inject } from '@loopback/context';
    import {
      GreetingService,
      GREETING_SERVICE,
    } from '@loopback/example-greeter-extension';
    ```
 
-3. **Remove** the line 
+3. **Remove** the line
 
     ```ts
-    protected greetingService: SimpleGreetingService;
+    private greetingService: SimpleGreetingService;
     ```
 
 4. Modify the constructor:
 
-   ```ts   
+   ```ts
      constructor(
        @inject(GREETING_SERVICE) private greetingService: GreetingService,
      ) {}
    ```
 
-   The `GreetingService` class is available to us from the `greeter-extension` module via a **binding key** named `GREETING_SERVICE`. We will **inject** the greeting service into the field  `private greetingService: GreetingService`.
+   The `GreetingService` class is available to us from the `greeter-extension` module via a **binding key** named `GREETING_SERVICE`. We will **inject** the greeting service into the field `private greetingService: GreetingService`.
 
-    A binding links a `key` to a `value` in a given context.
+   A binding links a `key` to a `value` in a given context.
 
-    ```ts
-    ctx.bind('hello').to('world'); // BindingKey='hello', BindingValue='world'`
-    ```
-
+   ```ts
+   ctx.bind('hello').to('world'); // BindingKey='hello', BindingValue='world'`
+   ```
 
 ### Step 3: Bind the GreetingComponent to the application
 
-In `src/application.ts`, 
+In `src/application.ts`,
 
 Add the following import statement:
 
 ```ts
-import {GreetingComponent} from '@loopback/example-greeter-extension';
+import { GreetingComponent } from '@loopback/example-greeter-extension';
 ```
 
 Add the following line inside the constructor:
@@ -422,27 +446,28 @@ Let's try it one more time with the language set to `fr`. The greeting service f
 
 ## Part 3: Add a French Greeter
 
+```sh
+git stash
+git checkout workshop-part2-completed
+cd greeter-app
+npm i
+```
+
  LB4 allows you to implement features that utilize the [extension points/extensions](https://loopback.io/doc/en/lb4/Extension-point-and-extensions.html) design pattern, which organizes artifacts with loose coupling and promotes extensibility. We have shown in previous steps that our app is organized into two modules. The `greeting-extension` module defines a `GreetingComponent`. `GreetingComponent` contains `GreetingService` which declares an extension point named `greeters`. There are 2 greeters (`EnglishGreeter` and `ChineseGreeter` which implement the `Greeter` interface, and which register themselves as extensions to this extension point `greeters`. `GreetingService` looks for extensions that can handle a particular language. If it cannot find the greeter for a particular language, it defaults to English. 
 
- ![Add extension](images/part-2-1.png)
+![Add extension](images/part-2-1.png)
 
 We'd like to have our app to greet to users in French! Let's create a new `FrenchGreeter` greeter class which extends [Greeter interface](https://github.com/strongloop/loopback-next/blob/master/examples/greeter-extension/src/types.ts#L13), and registers itself as an extension of extension point [`greeters`](https://github.com/strongloop/loopback-next/blob/master/examples/greeter-extension/src/types.ts#L21) declared by [`GreetingService`](https://github.com/strongloop/loopback-next/blob/master/examples/greeter-extension/src/greeting-service.ts#L22).
-
 
 ### Step 1: Create a French Greeter
 
 **Stop the app with Ctrl+C**
 
 1. In `src` folder, create a file called `greeter-fr.ts`.
-2. Add the required imports.
 
-   ```ts
-   import {bind, config} from '@loopback/context';
-   import {asGreeter, Greeter} from '@loopback/example-greeter-extension';
-   ```
-
-3. Add the `FrenchGreeterOptions` interface.
+2. Add the `FrenchGreeterOptions` interface.
    This will be added to `FrenchGreeter` class.
+
    ```ts
    /**
     * Options for the Frech greeter
@@ -453,9 +478,9 @@ We'd like to have our app to greet to users in French! Let's create a new `Frenc
    }
    ```
 
-   This part allows you to configure the extension. We will talk about configuration later. 
+   This part allows you to configure the extension. We will talk about configuration later.
 
-4. Add the `FrenchGreeter` class.
+3. Add the `FrenchGreeter` class.
 
    ```ts
    /**
@@ -470,9 +495,9 @@ We'd like to have our app to greet to users in French! Let's create a new `Frenc
        /**
         * Inject the configuration for FrenchGreeter
         */
-       // we inject the configuration we just defined here with `@config` decorator. We will talk about configuration later. 
+       // we inject the configuration we just defined here with `@config` decorator. We will talk about configuration later.
        @config()
-       private options: FrenchGreeterOptions = {nameFirst: true},
+       private options: FrenchGreeterOptions = { nameFirst: true },
      ) {}
 
      greet(name: string) {
@@ -484,22 +509,29 @@ We'd like to have our app to greet to users in French! Let's create a new `Frenc
    }
    ```
 
+   4. Add the required imports.
+
+   ```ts
+   import { bind, config } from '@loopback/context';
+   import { asGreeter, Greeter } from '@loopback/example-greeter-extension';
+   ```
+
 ### Step 2: Bind the FrenchGreeter in the Application
 
-In `src/application.ts`, 
+In `src/application.ts`,
 
 Add the following import statements:
 
 ```ts
-import {ApplicationConfig, createBindingFromClass} from '@loopback/core'; //Change this line
-import {FrenchGreeter} from './greeter-fr'; //Add this line
+import { ApplicationConfig, createBindingFromClass } from '@loopback/core'; //Change this line
+import { FrenchGreeter } from './greeter-fr'; //Add this line
 ```
 
 Inside the constructor, add the line below:
 
 ```ts
 this.component(GreetingComponent);
-// this line plugs in the extension
+// this line loads the extension to the app
 this.add(createBindingFromClass(FrenchGreeter));
 ```
 
@@ -528,7 +560,7 @@ Let's try out the new French Greeter.
 
 Besides enabling you to bind various types of classes to a binding key on a context, LB4 also allows you to `configure` bound items easily. Such configurations can be resolved and injected in the same way as other dependencies.
 
-The default setting in `ChineseGreeter` is to say your `name` first, followed by  `你好` (hello). For example `LoopBack, 你好`. Let's `configure` the `ChineseGreeter` to say `你好` followed by your `name`.
+The default setting in `ChineseGreeter` is to say your `name` first, followed by `你好` (hello). For example `LoopBack, 你好`. Let's `configure` the `ChineseGreeter` to say `你好` followed by your `name`.
 
 Add this line in your `application.ts` file
 
@@ -537,7 +569,7 @@ this.component(GreetingComponent);
 this.add(createBindingFromClass(FrenchGreeter));
 
 // Add the following line
-this.configure('greeters.ChineseGreeter').to({nameFirst: false});
+this.configure('greeters.ChineseGreeter').to({ nameFirst: false });
 ```
 
 ### Step 5: Try it Out!
@@ -546,14 +578,27 @@ Restart your application, try endpoint `GET /greeting/{name}`, with `language` s
 
 You will see message `'你好, name'` printed instead of `'name, 你好'`.
 
+We have set the `options.nameFirst` property for `FrenchGreeter` as well. You should be able to get the similar result if you try to configure the `FrenchGreeter`.
+
 Related documentation:
 [Configuration by convention](https://loopback.io/doc/en/lb4/Context.html#configuration-by-convention)
 
 ## Part 4: Enable Caching
 
-To reduce the cost of calculation, we'd like to use a caching service for the greeting application. We will show how to bind a caching service, interceptor and observer to the app.
+```sh
+git stash
+git checkout workshop-part3-completed
+cd greeter-app
+npm i
+```
 
-The caching service will cache the greeting messages for a certain amount of time. And cached messages will be swept out when they are expired.
+To reduce the cost of calculation, we'd like to add a caching system for the greeting application. We will show how to bind a caching service, interceptor and observer to the app.
+
+Here are the requirements:
+
+- Cache the result using the request's uri and language as the key.
+- The cached message has an expiration time.
+- Expired messages will be swept out periodically.
 
 ![Greeting application diagram](images/greeting-app-overview.png)
 
@@ -570,21 +615,21 @@ Again, we are using `bind` and `injection` to bind our app with an Interceptor a
 
 2. Create the binding key for caching service.
 
-    Let's create the binding key for the caching service so that you can inject it in an observer or an interceptor later.
+   Let's create the binding key for the caching service so that you can inject it in an observer or an interceptor later.
 
-    In `src` folder, create a file called `keys.ts` with the following content:
+   In `src` folder, create a file called `keys.ts` with the following content:
 
-    ```ts
-    import {BindingKey} from '@loopback/context';
-    import {CachingService} from './services/caching.service';
+   ```ts
+   import { BindingKey } from '@loopback/context';
+   import { CachingService } from './services/caching.service';
 
-    /**
-     * Strongly-typed binding key for CachingService
+   /**
+    * Strongly-typed binding key for CachingService
     */
-    export const CACHING_SERVICE = BindingKey.create<CachingService>(
-    'services.CachingService',
-    );
-    ```
+   export const CACHING_SERVICE = BindingKey.create<CachingService>(
+     'services.CachingService',
+   );
+   ```
 
 ### Step 2: Create global interceptor for caching
 
@@ -606,32 +651,32 @@ Again, we are using `bind` and `injection` to bind our app with an Interceptor a
 
 2. In `src/interceptors/caching.interceptors.ts`
 
-      Add and modify the following import statements:
+   Add and modify the following import statements:
 
-      ```ts
-      import {
-        /* inject, */
-        globalInterceptor,
-        Interceptor,
-        InvocationContext,
-        InvocationResult,
-        Provider,
-        inject,
-        ValueOrPromise,
-      } from '@loopback/context';
-      import {CachingService} from '../services/caching.service';
-      import {CACHING_SERVICE} from '../keys';
-      import {RestBindings} from '@loopback/rest';
-      ```
-      Modify the constructor:
+   ```ts
+   import {
+     /* inject, */
+     globalInterceptor,
+     Interceptor,
+     InvocationContext,
+     InvocationResult,
+     Provider,
+     inject,
+     ValueOrPromise
+   } from '@loopback/context';
+   import { CachingService } from '../services/caching.service';
+   import { CACHING_SERVICE } from '../keys';
+   import { RestBindings } from '@loopback/rest';
+   ```
 
-      ```ts
-        constructor(
-            @inject(CACHING_SERVICE) private cachingService: CachingService,
-        ) {}
-      ```
+   Modify the constructor:
 
-   
+   ```ts
+     constructor(
+         @inject(CACHING_SERVICE) private cachingService: CachingService,
+     ) {}
+   ```
+
 3. Add the pre-invocation and post-invocation logic in the `intercept` function.
 
    ```ts
@@ -648,48 +693,48 @@ Again, we are using `bind` and `injection` to bind our app with an Interceptor a
     if (!httpReq || EXCLUDED_PATHS.includes(httpReq.path)) {
       return next();
     }
-    const key = httpReq.path;
+    const path = httpReq.path;
 
     const lang = httpReq.headers['accept-language'] || 'en';
-    const cachingKey = `${lang}:${key}`;
+    const cachingKey = `${lang}:${path}`;
     const cachedResult = await this.cachingService.get(cachingKey);
     if (cachedResult) {
       console.error('Cache found for %s %j', cachingKey, cachedResult);
       return cachedResult;
     }
 
-    const result = await next();
+   const result = await next();
 
-    // Add post-invocation logic here
-    await this.cachingService.set(cachingKey, result);
-    return result;
+   // Add post-invocation logic here
+   await this.cachingService.set(cachingKey, result);
+   return result;
    ```
 
 4. Then bind the Interceptor to your app in `src/application.ts` file.
 
-   Add these imports: 
+   Add these imports:
 
    ```ts
-   // add these mports
+   // add these imports
    import {CachingService} from './services/caching.service';
    import {CACHING_SERVICE} from './keys';
    import {CachingInterceptor} from './interceptors';
    ```
 
-   Add these lines: 
+   Add these lines:
 
    ```ts
    this.bind(RestExplorerBindings.CONFIG).to({
      path: '/explorer',
    });
    // also add these lines. it binds interceptor and service to app
-   this.add(createBindingFromClass(CachingService, {key: CACHING_SERVICE}));
+   this.add(createBindingFromClass(CachingService, { key: CACHING_SERVICE }));
    this.add(createBindingFromClass(CachingInterceptor));
 
    this.component(RestExplorerComponent);
    this.component(GreetingComponent);
    ```
-   
+
    NOTE: The Observer is picked up during the `boot` process, and doesn't need to be bound to the application like other artifacts.
 
 ### Step 3: Create the observer
@@ -710,28 +755,27 @@ We'd like to start the caching service during the start of the application. Like
 
 2. Go to `src/observers/cache.observer.ts`,
 
-    Add the following import statements:
+   Add the following import statements:
 
-      ```ts
-      import {inject} from '@loopback/context';
-      import {CachingService} from '../services/caching.service';
-      import {CACHING_SERVICE} from '../keys';
-      import {
-        /* inject, Application, CoreBindings, */
-        lifeCycleObserver, // The decorator
-        LifeCycleObserver, // The interface
-      } from '@loopback/core';
-      ```
+   ```ts
+   import { inject } from '@loopback/context';
+   import { CachingService } from '../services/caching.service';
+   import { CACHING_SERVICE } from '../keys';
+   import {
+     /* inject, Application, CoreBindings, */
+     lifeCycleObserver, // The decorator
+     LifeCycleObserver, // The interface
+   } from '@loopback/core';
+   ```
 
-    Modify the constructor to get the caching service:
+   Modify the constructor to get the caching service:
 
-      ```ts
-      constructor(
-          @inject(CACHING_SERVICE) private cachingService: CachingService,
-      ) {}
-      ```
+   ```ts
+   constructor(
+       @inject(CACHING_SERVICE) private cachingService: CachingService,
+   ) {}
+   ```
 
-  
 3. For the `start()` and `stop()` function, we want to start and stop the caching service.
 
    ```ts
@@ -764,7 +808,7 @@ The expire time for each result is set to 10 seconds (10000 milliseconds by defa
 
 To test the cached result and its expiration, you can
 
-Try GET/ greet/{name} with a name 'loopback' and language 'en'
+Try `GET/ greet/{name}` with a name 'loopback' and language 'en'
 You will see a result object with a timestamp field like
 
 ```
@@ -823,7 +867,11 @@ The interceptor, service and observer could be contributed by from different mod
 
 ## Conclusion
 
-Congratulations! You have completed the tutorial.
+Congratulations! You have completed the tutorial. You can checkout branch `workshop-part4-complete` to view the finished app.
+
+```sh
+git checkout workshop-part4-completed
+```
 
 First, you built a LoopBack application using a component GreetingComponent located in a different module named greeter-extension. Then you extended the functionality to the GreetingComponent by adding FrenchGreeter as an extension. Then you created a caching service that is started and stopped by a lifecycle observer. And lastly, you retrieved/stored request responses from/in the cache by using an interceptor.
 
